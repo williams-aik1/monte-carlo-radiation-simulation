@@ -52,7 +52,7 @@ if uploaded_file is not None:
     st.sidebar.markdown(
        """
        <div style="position:fixed; bottom:10px; left:10px; font-size:12px; color:gray;">
-           Developed by Williams Kaphika
+           by Williams Kaphika
        </div>
        """,
       unsafe_allow_html=True
