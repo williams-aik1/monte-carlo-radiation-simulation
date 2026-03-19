@@ -10,6 +10,15 @@ st.set_page_config(page_title="PhotonScope MC", layout="wide")
 st.title("PhotonScope MC (Monte Carlo)")
 st.markdown("**Monte Carlo Radiation Simulation with Tumor Targeting & Dose Visualization**")
 
+# Add a professional footer in the sidebar
+st.sidebar.markdown(
+    """
+    <div style="position:fixed; bottom:10px; left:10px; font-size:12px; color:gray;">
+        by Williams Kaphika
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 # -----------------------------
 # File Upload
 # -----------------------------
@@ -158,13 +167,4 @@ if uploaded_file is not None:
         st.write(f"Tumor Underdose Probability (<{threshold} dose):", underdose_prob)
 
 
-# Add a professional footer in the sidebar
-st.sidebar.markdown(
-    """
-    <div style="position:fixed; bottom:10px; left:10px; font-size:12px; color:gray;">
-        by Williams Kaphika
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
