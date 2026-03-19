@@ -56,7 +56,7 @@ if uploaded_file is not None:
        </div>
        """,
       unsafe_allow_html=True
-    
+    )
         # -----------------------------
     # Tumor Region (centered in soft tissue)
     # -----------------------------
