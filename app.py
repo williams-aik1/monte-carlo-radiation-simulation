@@ -48,15 +48,7 @@ if uploaded_file is not None:
     I0 = st.sidebar.slider("Beam Intensity", 10, 200, 100)
     n_photons = st.sidebar.slider("Number of Photons", 100, 20000, 5000)
 
-    # Add a professional footer in the sidebar
-    st.sidebar.markdown(
-       """
-       <div style="position:fixed; bottom:10px; left:10px; font-size:12px; color:gray;">
-           by Williams Kaphika
-       </div>
-       """,
-      unsafe_allow_html=True
-    )
+   
         # -----------------------------
     # Tumor Region (centered in soft tissue)
     # -----------------------------
@@ -177,7 +169,7 @@ n_photons = st.sidebar.slider("Number of Photons", 100, 20000, 5000)
 st.sidebar.markdown(
     """
     <div style="position:fixed; bottom:10px; left:10px; font-size:12px; color:gray;">
-        Developed by Williams Kaphika
+        by Williams Kaphika
     </div>
     """,
     unsafe_allow_html=True
