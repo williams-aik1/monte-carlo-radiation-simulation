@@ -7,7 +7,7 @@ import pydicom
 # App Branding
 # -----------------------------
 st.set_page_config(page_title="PhotonScope MC", layout="wide")
-st.title("PhotonScope MC – Williams Kaphika")
+st.title("PhotonScope MC (Monte Carlo)")
 st.markdown("**Monte Carlo Radiation Simulation with Tumor Targeting & Dose Visualization**")
 
 # -----------------------------
