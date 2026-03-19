@@ -157,13 +157,6 @@ if uploaded_file is not None:
         st.write("Min Tumor Dose:", np.min(tumor_dose))
         st.write(f"Tumor Underdose Probability (<{threshold} dose):", underdose_prob)
 
-# -----------------------------
-# Sidebar Controls
-# -----------------------------
-st.sidebar.header("PhotonScope MC Controls")
-model = st.sidebar.selectbox("Simulation Model", ["Deterministic", "Monte Carlo"])
-I0 = st.sidebar.slider("Beam Intensity", 10, 200, 100)
-n_photons = st.sidebar.slider("Number of Photons", 100, 20000, 5000)
 
 # Add a professional footer in the sidebar
 st.sidebar.markdown(
