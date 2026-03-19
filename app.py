@@ -48,7 +48,16 @@ if uploaded_file is not None:
     I0 = st.sidebar.slider("Beam Intensity", 10, 200, 100)
     n_photons = st.sidebar.slider("Number of Photons", 100, 20000, 5000)
 
-    # -----------------------------
+    # Add a professional footer in the sidebar
+    st.sidebar.markdown(
+       """
+       <div style="position:fixed; bottom:10px; left:10px; font-size:12px; color:gray;">
+           Developed by Williams Kaphika
+       </div>
+       """,
+      unsafe_allow_html=True
+    
+        # -----------------------------
     # Tumor Region (centered in soft tissue)
     # -----------------------------
     soft_tissue_indices = np.argwhere(tissue == 1)
@@ -155,3 +164,22 @@ if uploaded_file is not None:
         st.write("Max Tumor Dose:", np.max(tumor_dose))
         st.write("Min Tumor Dose:", np.min(tumor_dose))
         st.write(f"Tumor Underdose Probability (<{threshold} dose):", underdose_prob)
+
+# -----------------------------
+# Sidebar Controls
+# -----------------------------
+st.sidebar.header("PhotonScope MC Controls")
+model = st.sidebar.selectbox("Simulation Model", ["Deterministic", "Monte Carlo"])
+I0 = st.sidebar.slider("Beam Intensity", 10, 200, 100)
+n_photons = st.sidebar.slider("Number of Photons", 100, 20000, 5000)
+
+# Add a professional footer in the sidebar
+st.sidebar.markdown(
+    """
+    <div style="position:fixed; bottom:10px; left:10px; font-size:12px; color:gray;">
+        Developed by Williams Kaphika
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
