@@ -122,7 +122,7 @@ if uploaded_file is not None:
 
     # --- CT Image ---
     with tab1:
-        fig1, ax1 = plt.subplots(figsize=(6,6))
+        fig1, ax1 = plt.subplots(figsize=(4,4))
         ax1.imshow(image, cmap="gray")
         ax1.set_title("CT Slice with Tumor")
         ax1.axis("off")
