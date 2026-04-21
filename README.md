@@ -1,49 +1,214 @@
-# Monte Carlo Radiation Simulation using CT Data
+# CT-Based Monte Carlo Radiation Dose Simulation
 
-## Overview
-This project simulates radiation dose deposition in human tissue using real CT scan data.
+## 📌 Overview
 
-It compares:
-- Deterministic radiation attenuation (Beer–Lambert law)
-- Monte Carlo photon transport (stochastic simulation)
+This project simulates **radiation dose deposition in human tissue** using real CT (DICOM) images. It compares a simple deterministic beam model with a **Monte Carlo photon transport simulation** to demonstrate how beam targeting improves tumor dose delivery.
 
-## Features
-- CT DICOM image processing using pydicom
-- Tissue segmentation (Air, Soft Tissue, Bone)
-- Radiation attenuation modeling
-- Monte Carlo photon random walk simulation
-- Tumor region modeling
-- Beam targeting simulation
-- Dose statistics and visualization
+The application includes an interactive web interface built with Streamlit, allowing users to upload CT scans and visualize radiation dose distribution in real time.
 
-## Results
-- Bone absorbs the highest radiation dose
-- Monte Carlo simulation produces realistic stochastic patterns
-- Targeted beams significantly increase tumor dose
-- Underdose probability decreases with beam focusing
+---
 
-## Example Outputs
-- CT image visualization
-- Tissue segmentation map
-- Radiation dose heatmaps
-- Tumor dose distribution
-- Beam comparison plots
+## 🎯 Objectives
 
-## Technologies Used
-- Python
-- NumPy
-- Matplotlib
-- Pandas
-- pydicom
+* Simulate radiation transport through human tissue
+* Compare deterministic vs stochastic (Monte Carlo) models
+* Analyze dose deposition across different tissue types
+* Evaluate tumor targeting efficiency and underdose probability
 
-## Project Structure
-├── radiation_simulation.ipynb
-├── radiation_simulation_report.pdf
-└── README.md
-## Future Improvements
-- 3D CT simulation
-- Advanced scattering physics
-- Integration with Geant4
+---
 
-## Author
-WILLIAMS STONARD KAPHIKA
+## 🚀 Features
+
+* 📂 Upload real CT DICOM images
+* 🧬 Automatic tissue segmentation (Air, Soft Tissue, Bone)
+* ⚛️ Monte Carlo photon transport simulation
+* 🎯 Tumor region detection and targeted beam delivery
+* 🔥 Dose heatmap visualization
+* 📊 Statistical analysis of dose distribution
+* 📉 Tumor underdose probability calculation
+* 🌐 Interactive Streamlit web app
+
+---
+
+## 🖼️ Example Outputs
+
+* CT image visualization
+* Tissue segmentation map
+* Radiation dose heatmap
+* Tumor overlay
+* Dose distribution histogram
+* Random vs targeted beam comparison
+
+*(Add screenshots here in `/images` folder)*
+
+---
+
+## ⚛️ Technical Approach
+
+### 1. Hounsfield Unit Conversion
+
+CT pixel values are converted to physical density using:
+
+```
+HU = pixel_value × slope + intercept
+```
+
+---
+
+### 2. Tissue Segmentation
+
+| Tissue Type | HU Range    |
+| ----------- | ----------- |
+| Air         | HU < -500   |
+| Soft Tissue | -500 to 300 |
+| Bone        | HU ≥ 300    |
+
+---
+
+### 3. Radiation Attenuation Model
+
+Each tissue type is assigned an attenuation coefficient:
+
+| Tissue      | μ (attenuation) |
+| ----------- | --------------- |
+| Air         | 0.02            |
+| Soft Tissue | 0.20            |
+| Bone        | 0.50            |
+
+Radiation follows exponential attenuation:
+
+```
+I = I₀ · exp(-μx)
+```
+
+---
+
+### 4. Monte Carlo Simulation
+
+Photons are simulated individually with:
+
+* Random interactions based on probability:
+
+  ```
+  P(interaction) = 1 - exp(-μ)
+  ```
+* Energy deposition at interaction points
+* Random lateral scattering
+* Energy decay after each interaction
+
+---
+
+### 5. Tumor Targeting
+
+* Tumor region defined within soft tissue
+* Targeted beam focuses photons near tumor
+* Increased energy deposition inside tumor region
+
+---
+
+## 📊 Results & Insights
+
+### 🔬 Key Findings
+
+* Targeted beam delivers **~40× higher tumor dose** compared to random beam
+* Monte Carlo simulation produces realistic stochastic dose patterns
+* Soft tissue absorbs the highest radiation dose
+* Bone shows minimal dose due to high attenuation
+
+### 📉 Tumor Analysis
+
+* Mean tumor dose significantly increases with targeting
+* Underdose probability ≈ **40%**, showing dose variability
+
+---
+
+## 🛠️ Tech Stack
+
+* Python
+* NumPy
+* Matplotlib
+* Pydicom
+* Pandas
+* Streamlit
+
+---
+
+## 🌐 Running the App
+
+### 🔧 Install dependencies
+
+```
+pip install -r requirements.txt
+```
+
+### ▶️ Run locally
+
+```
+streamlit run app.py
+```
+
+---
+
+### ☁️ Run in Google Colab
+
+```
+!streamlit run app.py & npx localtunnel --port 8501
+```
+
+---
+
+## 📁 Project Structure
+
+```
+project/
+│── app.py
+│── README.md
+│── requirements.txt
+│── images/
+│── sample_data/
+```
+
+---
+
+## 📌 Future Improvements
+
+* 3D CT volume simulation (multi-slice)
+* Dose Volume Histogram (DVH)
+* Beam angle optimization
+* Real-world dose units (Gray)
+* Energy-dependent photon interactions
+
+---
+
+## 💡 Applications
+
+* Radiation therapy planning (conceptual)
+* Medical physics education
+* Monte Carlo simulation learning
+* Biomedical engineering projects
+
+---
+
+## ⚠️ Disclaimer
+
+This project is for **educational and research purposes only**.
+It is not intended for clinical use or medical decision-making.
+
+---
+
+## 👤 Author
+
+Williams Stonard Kaphika
+
+---
+
+## ⭐ Acknowledgments
+
+* TCIA (The Cancer Imaging Archive) for CT datasets
+* Open-source Python libraries
+
+---
+
+## 📬 Contact
+
+kaphika.ws@gmail.com
