@@ -2,42 +2,41 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import pydicom
+import pandas as pd
+
+st.set_page_config(layout="wide")
+st.title("Monte Carlo Radiation Dose Simulation (CT-Based)")
 
 # -----------------------------
-# App Branding
+# Sidebar Controls
 # -----------------------------
-st.set_page_config(page_title="PhotonScope MC", layout="wide")
-st.title("PhotonScope MC (Monte Carlo)")
-st.markdown("**Monte Carlo Radiation Simulation with Tumor Targeting & Dose Visualization**")
+st.sidebar.header("Simulation Parameters")
+n_photons = st.sidebar.slider("Number of Photons", 1000, 30000, 15000)
+beam_sigma = st.sidebar.slider("Beam Focus (sigma)", 1, 10, 3)
+threshold = st.sidebar.slider("Underdose Threshold", 0.0, 1.0, 0.3)
 
-# Add a professional footer in the sidebar
-st.sidebar.markdown(
-    """
-    <div style="position:fixed; bottom:10px; left:10px; font-size:12px; color:gray;">
-        by Williams Kaphika
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 # -----------------------------
 # File Upload
 # -----------------------------
 uploaded_file = st.file_uploader("Upload CT DICOM file", type=["dcm"])
 
 if uploaded_file is not None:
+
     ds = pydicom.dcmread(uploaded_file)
     image = ds.pixel_array.astype(float)
 
-    # Convert to Hounsfield Units
+    # -----------------------------
+    # Convert to HU
+    # -----------------------------
     hu = image * ds.RescaleSlope + ds.RescaleIntercept
 
     # -----------------------------
     # Tissue Segmentation
     # -----------------------------
     tissue = np.zeros_like(hu)
-    tissue[hu < -500] = 0           # Air
-    tissue[(hu >= -500) & (hu < 300)] = 1  # Soft Tissue
-    tissue[hu >= 300] = 2           # Bone
+    tissue[hu < -500] = 0
+    tissue[(hu >= -500) & (hu < 300)] = 1
+    tissue[hu >= 300] = 2
 
     # -----------------------------
     # Attenuation Map
@@ -50,121 +49,138 @@ if uploaded_file is not None:
     rows, cols = mu_map.shape
 
     # -----------------------------
-    # Sidebar Controls
+    # Tumor Selection (center of soft tissue)
     # -----------------------------
-    st.sidebar.header("PhotonScope MC Controls")
-    model = st.sidebar.selectbox("Simulation Model", ["Deterministic", "Monte Carlo"])
-    I0 = st.sidebar.slider("Beam Intensity", 10, 200, 100)
-    n_photons = st.sidebar.slider("Number of Photons", 100, 20000, 5000)
-
-   
-        # -----------------------------
-    # Tumor Region (centered in soft tissue)
-    # -----------------------------
-    soft_tissue_indices = np.argwhere(tissue == 1)
-    tumor_center = soft_tissue_indices[len(soft_tissue_indices)//2]  # roughly center
-    r_center, c_center = tumor_center
-    tumor_radius = min(rows, cols)//20
-    tumor_rows, tumor_cols = np.where(
-        (np.arange(rows)[:, None] - r_center)**2 +
-        (np.arange(cols)[None, :] - c_center)**2 <= tumor_radius**2
-    )
+    soft_indices = np.argwhere(tissue == 1)
+    center_index = len(soft_indices) // 2
+    r_center, c_center = soft_indices[center_index]
 
     # -----------------------------
-    # Simulation placeholders
+    # Monte Carlo (Targeted)
     # -----------------------------
-    dose_map = np.zeros_like(mu_map)
-    dose_map_mc = np.zeros_like(mu_map)
+    dose_map_mc2 = np.zeros((rows, cols))
 
-    # -----------------------------
-    # Deterministic Beam Simulation
-    # -----------------------------
-    if model == "Deterministic":
-        for col in range(cols):
-            beam_col = col
-            intensity = I0
-            for row in range(rows):
-                mu = mu_map[row, beam_col]
-                attenuation = np.exp(-mu)
-                deposited = intensity * (1 - attenuation)
-                dose_map[row, beam_col] += deposited
-                intensity *= attenuation
-                # small lateral scattering
-                beam_col = min(max(beam_col + np.random.choice([-1,0,1]), 0), cols-1)
-                if intensity < 1e-6:
-                    break
+    for p in range(n_photons):
+        x = int(np.random.normal(c_center, beam_sigma))
+        x = np.clip(x, 0, cols - 1)
+        y = 0
+        energy = 1.0
 
-    # -----------------------------
-    # Monte Carlo Photon Transport
-    # -----------------------------
-    if model == "Monte Carlo":
-        for p in range(n_photons):
-            x = np.random.randint(0, cols)
-            y = 0
-            energy = 1.0
-            while energy > 0.001 and y < rows:
-                mu = mu_map[y, x]
-                p_interact = 1 - np.exp(-mu)
-                if np.random.random() < p_interact:
+        while energy > 0.001 and y < rows:
+            mu = mu_map[y, x]
+            p_interact = 1 - np.exp(-mu)
+
+            if np.random.random() < p_interact:
+                if (r_center-10 <= y < r_center+10) and (c_center-10 <= x < c_center+10):
+                    deposited = energy * 0.2
+                else:
                     deposited = energy * 0.1
-                    dose_map_mc[y, x] += deposited
-                    energy *= 0.9
-                step = np.random.choice([-1, 0, 1])
-                x = min(max(x + step, 0), cols - 1)
-                y += 1
 
-    target_map = dose_map_mc if model == "Monte Carlo" else dose_map
+                dose_map_mc2[y, x] += deposited
+                energy *= 0.9
+
+            step = np.random.choice([-1, 0, 1], p=[0.1, 0.8, 0.1])
+            x = np.clip(x + step, 0, cols - 1)
+            y += 1
 
     # -----------------------------
-    # Tabs for Clean UI
+    # Monte Carlo (Random)
     # -----------------------------
-    tab1, tab2, tab3, tab4 = st.tabs(["CT Image", "Tissue Segmentation", "Dose Map", "Statistics"])
+    dose_map_mc = np.zeros((rows, cols))
 
-    # --- CT Image ---
-    with tab1:
-        fig1, ax1 = plt.subplots(figsize=(4,4))
-        ax1.imshow(image, cmap="gray")
-        ax1.set_title("CT Slice with Tumor")
-        ax1.axis("off")
-        ax1.plot(tumor_cols, tumor_rows, 'r.', markersize=1)
+    for p in range(n_photons):
+        x = np.random.randint(0, cols)
+        y = 0
+        energy = 1.0
+
+        while energy > 0.001 and y < rows:
+            mu = mu_map[y, x]
+            p_interact = 1 - np.exp(-mu)
+
+            if np.random.random() < p_interact:
+                deposited = energy * 0.1
+                dose_map_mc[y, x] += deposited
+                energy *= 0.9
+
+            step = np.random.choice([-1, 0, 1])
+            x = np.clip(x + step, 0, cols - 1)
+            y += 1
+
+    # -----------------------------
+    # Tumor Dose Analysis
+    # -----------------------------
+    dose_norm = dose_map_mc2 / (np.max(dose_map_mc2) + 1e-8)
+    tumor_dose = dose_norm[r_center-10:r_center+10, c_center-10:c_center+10].ravel()
+    underdose_prob = np.mean(tumor_dose < threshold)
+
+    tumor_dose_random = dose_map_mc[r_center-10:r_center+10, c_center-10:c_center+10].ravel()
+    tumor_dose_targeted = dose_map_mc2[r_center-10:r_center+10, c_center-10:c_center+10].ravel()
+
+    # -----------------------------
+    # Layout
+    # -----------------------------
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("CT Image")
+        fig1, ax1 = plt.subplots()
+        ax1.imshow(image, cmap='gray')
+        ax1.axis('off')
         st.pyplot(fig1)
 
-    # --- Tissue Segmentation ---
-    with tab2:
-        fig2, ax2 = plt.subplots(figsize=(6,6))
-        im2 = ax2.imshow(tissue, cmap="viridis")
-        ax2.set_title("Tissue Segmentation")
-        ax2.axis("off")
-        fig2.colorbar(im2, ax=ax2, fraction=0.046, pad=0.04)
+        st.subheader("Tissue Segmentation")
+        fig2, ax2 = plt.subplots()
+        ax2.imshow(tissue, cmap='viridis')
         st.pyplot(fig2)
 
-    # --- Dose Map with Tumor Overlay ---
-    with tab3:
-        fig3, ax3 = plt.subplots(figsize=(6,6))
-        im3 = ax3.imshow(target_map, cmap="hot")
-        ax3.set_title(f"{model} Dose Map")
-        ax3.axis("off")
-        ax3.plot(tumor_cols, tumor_rows, 'b.', markersize=1)
-        fig3.colorbar(im3, ax=ax3, fraction=0.046, pad=0.04)
+    with col2:
+        st.subheader("Monte Carlo Dose (Targeted)")
+        fig3, ax3 = plt.subplots()
+        ax3.imshow(dose_map_mc2, cmap='hot')
         st.pyplot(fig3)
 
-    # --- Dose Statistics ---
-    with tab4:
-        st.subheader("Dose Statistics by Tissue")
-        st.write("Air:", np.mean(target_map[tissue == 0]))
-        st.write("Soft Tissue:", np.mean(target_map[tissue == 1]))
-        st.write("Bone:", np.mean(target_map[tissue == 2]))
+        st.subheader("Tumor Overlay")
+        fig4, ax4 = plt.subplots()
+        ax4.imshow(dose_map_mc2, cmap='hot')
+        for r in range(r_center-10, r_center+10):
+            for c in range(c_center-10, c_center+10):
+                ax4.plot(c, r, 'b.', markersize=1)
+        st.pyplot(fig4)
 
-        st.subheader("Tumor Dose Analysis")
-        tumor_dose = target_map[np.ix_(tumor_rows, tumor_cols)].flatten()
-        threshold = 0.05
-        underdose_prob = np.mean(tumor_dose < threshold)
+    # -----------------------------
+    # Charts
+    # -----------------------------
+    st.subheader("Tumor Dose Distribution")
+    fig5, ax5 = plt.subplots()
+    ax5.hist(tumor_dose, bins=20)
+    st.pyplot(fig5)
 
-        st.write("Mean Tumor Dose:", np.mean(tumor_dose))
-        st.write("Tumor Dose Std Dev:", np.std(tumor_dose))
-        st.write("Max Tumor Dose:", np.max(tumor_dose))
-        st.write("Min Tumor Dose:", np.min(tumor_dose))
-        st.write(f"Tumor Underdose Probability (<{threshold} dose):", underdose_prob)
+    st.subheader("Random vs Targeted Beam")
+    fig6, ax6 = plt.subplots()
+    labels = ["Random", "Targeted"]
+    means = [np.mean(tumor_dose_random), np.mean(tumor_dose_targeted)]
+    ax6.bar(labels, means)
+    st.pyplot(fig6)
 
+    # -----------------------------
+    # Metrics
+    # -----------------------------
+    st.subheader("Key Metrics")
+    st.write("Mean Tumor Dose (Targeted):", np.mean(tumor_dose_targeted))
+    st.write("Mean Tumor Dose (Random):", np.mean(tumor_dose_random))
+    st.write("Underdose Probability:", underdose_prob)
 
+    df = pd.DataFrame({
+        "Metric": ["Mean", "Std", "Max", "Min"],
+        "Tumor Dose": [
+            np.mean(tumor_dose),
+            np.std(tumor_dose),
+            np.max(tumor_dose),
+            np.min(tumor_dose)
+        ]
+    })
 
+    st.dataframe(df)
+
+else:
+    st.info("Please upload a DICOM (.dcm) file to begin simulation.")
