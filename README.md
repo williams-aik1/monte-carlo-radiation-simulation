@@ -33,16 +33,26 @@ The application includes an interactive web interface built with Streamlit, allo
 ## Outputs
 
 * CT image visualization
-  <img width="389" height="411" alt="CT Slice" src="https://github.com/user-attachments/assets/c58b31e8-d1b0-4717-b6dc-81d0d633e773" />
-  <img width="525" height="435" alt="Hounsfield Units" src="https://github.com/user-attachments/assets/5f80ab86-71d6-4aa8-96d5-ccbe189f6505" />
+  <img width="389" height="411" alt="CT Slice" src="https://github.com/user-attachments/assets/c58b31e8-d1b0-4717-b6dc-81d0d633e773" /><img width="525" height="435" alt="Hounsfield Units" src="https://github.com/user-attachments/assets/5f80ab86-71d6-4aa8-96d5-ccbe189f6505" />
+<img width="477" height="75" alt="image" src="https://github.com/user-attachments/assets/6ead4872-e0e6-4ee6-a46d-95b7b8e2939d" />
 
 * Tissue segmentation map
   <img width="509" height="435" alt="Tissue Segmentation" src="https://github.com/user-attachments/assets/2e8cbf3a-d247-45c0-849f-e1455582f900" />
 
 * Radiation dose heatmap
+  <img width="496" height="435" alt="image" src="https://github.com/user-attachments/assets/b95736ca-50ab-4dc8-9a55-a1a7d54a0cc4" />
+
 * Tumor overlay
+  <img width="430" height="435" alt="image" src="https://github.com/user-attachments/assets/4a681290-4c46-40d7-8b9b-8cacbf0c203f" />
+
+
 * Dose distribution histogram
+  <img width="543" height="435" alt="image" src="https://github.com/user-attachments/assets/de68e5c8-2681-4179-b40e-e8f3b95d8d9f" />
+
 * Random vs targeted beam comparison
+<img width="567" height="435" alt="image" src="https://github.com/user-attachments/assets/fef18c13-3b01-404a-8ac6-cbe67784d453" /> <img width="491" height="94" alt="image" src="https://github.com/user-attachments/assets/8e6f8493-9244-4241-a430-c41153f7b202" /> <img width="413" height="68" alt="image" src="https://github.com/user-attachments/assets/3a322cb0-ba0c-4567-8734-8f314273e9ff" />
+
+
 
 ---
 
@@ -77,7 +87,8 @@ Each tissue type is assigned an attenuation coefficient:
 | ----------- | --------------- |
 | Air         | 0.02            |
 | Soft Tissue | 0.20            |
-| Bone        | 0.50            |
+| Bone        | 0.50            |<img width="491" height="126" alt="image" src="https://github.com/user-attachments/assets/bb745e22-5253-4c81-8a93-45d69be00c77" />
+
 
 Radiation follows exponential attenuation:
 
